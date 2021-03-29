@@ -10,11 +10,11 @@ import (
 )
 
 func main() {
-	inputFolder := "C:\\Temp\\ToUpload\\From Asus Tab"
-	//inputFolder := os.Args[1]
+	//inputFolder := "C:\\Temp\\ToUpload\\From Asus Tab"
+	inputFolder := os.Args[1]
 
-	outputFolder := "C:\\Temp\\ToUpload\\n"
-	//outputFolder := os.Args[2]
+	//outputFolder := "C:\\Temp\\ToUpload\\n"
+	outputFolder := os.Args[2]
 
 	err := filepath.Walk(inputFolder,
 		func(inputFileFolderPath string, info os.FileInfo, err error) error {
