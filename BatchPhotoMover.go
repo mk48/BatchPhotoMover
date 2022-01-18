@@ -20,40 +20,26 @@ func main() {
 		func(inputFileFolderPath string, info os.FileInfo, err error) error {
 			if err == nil {
 				if !info.IsDir() {
-					//process only files
-					f, err := os.Open(inputFileFolderPath)
-					if err == nil {
-						exifInfo, err := exif.Decode(f)
-						f.Close()
-						if err == nil {
-							exifInfoDateTime, err := exifInfo.DateTime()
-							if err == nil {
-								//fmt.Printf("%s --> %s\n", path, exifInfoDateTime)
-								exifInfoDateTimeForPath := exifInfoDateTime.Format("2006-01-02")
-								outputFolderFullPath := filepath.FromSlash(path.Join(outputFolder, exifInfoDateTimeForPath))
+					photoTaken, err := getPhotoTakenDateTime(inputFileFolderPath)
 
-								if _, err := os.Stat(outputFolderFullPath); os.IsNotExist(err) {
-									os.Mkdir(outputFolderFullPath, os.ModeDir)
-									fmt.Printf("\nNew folder created: %s\n", outputFolderFullPath)
-								}
+					if err == nil && photoTaken != "" {
+						outputFolderFullPath := filepath.FromSlash(path.Join(outputFolder, photoTaken))
 
-								//move the file
-								newLocationToMove := filepath.FromSlash(path.Join(outputFolderFullPath, info.Name()))
-								fmt.Printf("%s --> %s\n", inputFileFolderPath, newLocationToMove)
+						if _, err := os.Stat(outputFolderFullPath); os.IsNotExist(err) {
+							os.Mkdir(outputFolderFullPath, os.ModeDir)
+							fmt.Printf("\nNew folder created: %s\n", outputFolderFullPath)
+						}
 
-								errInMove := os.Rename(inputFileFolderPath, newLocationToMove)
-								if errInMove != nil {
-									fmt.Printf("Error to move: %s\n%s\n", inputFileFolderPath, errInMove)
-								}
+						//move the file
+						newLocationToMove := filepath.FromSlash(path.Join(outputFolderFullPath, info.Name()))
+						fmt.Printf("%s --> %s\n", inputFileFolderPath, newLocationToMove)
 
-							} else {
-								fmt.Printf("\nError to get DateTime: %s\n%s\n\n", inputFileFolderPath, err)
-							}
-						} else {
-							fmt.Printf("\nError to get Exif info: %s\n%s\n\n", inputFileFolderPath, err)
+						errInMove := os.Rename(inputFileFolderPath, newLocationToMove)
+						if errInMove != nil {
+							fmt.Printf("Error to move: %s\n%s\n", inputFileFolderPath, errInMove)
 						}
 					} else {
-						fmt.Printf("\nError to open file: %s\n%s\n\n", inputFileFolderPath, err)
+						fmt.Printf("\nErr\n")
 					}
 				}
 			} else {
@@ -67,4 +53,40 @@ func main() {
 	}
 
 	fmt.Println("--> Completed <--")
+}
+
+func getPhotoTakenDateTime(fileName string) (string, error) {
+	f, err := os.Open(fileName)
+	if err != nil {
+		fmt.Printf("\nError to open file: %s\n%s\n\n", fileName, err)
+		return "", err
+	}
+
+	exifInfo, err := exif.Decode(f)
+	defer f.Close()
+
+	if err != nil {
+		//fmt.Printf("\nError to get Exif info, so using file time: %s\n%s\n\n", fileName, err)
+		return getFileModifiedDateTime(fileName)
+	} else {
+		exifInfoDateTime, err := exifInfo.DateTime()
+		if err != nil {
+			fmt.Printf("\nError in retrieving the photo taken time -> exifInfo.DateTime(): %s\n%s\n\n", fileName, err)
+			return getFileModifiedDateTime(fileName)
+		}
+		return exifInfoDateTime.Format("2006-01-02"), nil
+	}
+}
+
+//get file modified datetime
+func getFileModifiedDateTime(fileName string) (string, error) {
+	info, err := os.Stat(fileName)
+	if err != nil {
+		fmt.Printf("\nError in getting file modified time: %s\n%s\n\n", fileName, err)
+		return "", err
+	}
+
+	fmt.Println("File time")
+	dt := info.ModTime().Format("2006-01-02")
+	return dt, nil
 }
