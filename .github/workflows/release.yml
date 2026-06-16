@@ -34,12 +34,12 @@ jobs:
         run: |
           go build \
             -ldflags="-s -w -X main.version=0.0.${{ github.run_number }}" \
-            -o batch-photo-mover-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext || '' }} \
+            -o batch-photo-mover-0.0.${{ github.run_number }}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext || '' }} \
             .
 
       - uses: actions/upload-artifact@v4
         with:
-          name: batch-photo-mover-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: batch-photo-mover-0.0.${{ github.run_number }}-${{ matrix.goos }}-${{ matrix.goarch }}
           path: batch-photo-mover-*
 
   release:
