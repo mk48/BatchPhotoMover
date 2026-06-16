@@ -1,6 +1,6 @@
 # Run in dev
 
-go run BatchPhotoMover.go
+go run .
 
 # Build
 

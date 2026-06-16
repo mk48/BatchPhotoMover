@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          #- { goos: linux,   goarch: amd64 }
+          #- { goos: linux,   goarch: arm64 }
+          #- { goos: darwin,  goarch: amd64 }
+          #- { goos: darwin,  goarch: arm64 }
+          - { goos: windows, goarch: amd64, ext: .exe }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Build the Go binary ─────────────────────────────────────────────────
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          go build \
+            -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+            -o batch-photo-mover-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext || '' }} \
+            .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: batch-photo-mover-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: batch-photo-mover-*
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest
+          files: batch-photo-mover-*
+          generate_release_notes: true
