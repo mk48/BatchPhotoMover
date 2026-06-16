@@ -8,9 +8,11 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 )
 
+var version = "dev"
+
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "usage: BatchPhotoMover <input-folder> <output-folder>")
+		fmt.Fprintf(os.Stderr, "BatchPhotoMover %s\nusage: BatchPhotoMover <input-folder> <output-folder>\n", version)
 		os.Exit(1)
 	}
 

@@ -33,7 +33,7 @@ jobs:
           CGO_ENABLED: 0
         run: |
           go build \
-            -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+            -ldflags="-s -w -X main.version=0.0.${{ github.run_number }}" \
             -o batch-photo-mover-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext || '' }} \
             .
 
